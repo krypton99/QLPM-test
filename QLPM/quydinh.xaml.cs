@@ -1,0 +1,370 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using QLPMDTO;
+using QLPMBUS;
+using System.Data;
+namespace QLPM
+{
+    /// <summary>
+    /// Interaction logic for quydinh.xaml
+    /// </summary>
+    public partial class quydinh : Window
+    {
+        public quydinh()
+        {
+            InitializeComponent();
+            load();
+        }
+        private void load()
+        {
+            ThuocBUS thBus = new ThuocBUS();
+            List<Cachdung> listcd = thBus.getcachdung();
+            List<Donvi> listdv = thBus.getdonvi();
+            this.load_combobox(listdv, listcd);
+        }
+        private void load_combobox(List<Donvi> listdv, List<Cachdung> listcd)
+        {
+            if (listdv == null || listcd == null)
+            {
+                MessageBox.Show("Có lỗi khi lấy thông tin từ DB");
+                return;
+            }
+
+            DataTable table = new DataTable();
+            DataTable table1 = new DataTable();
+
+            table.Columns.Add("donVi", typeof(string));
+            table1.Columns.Add("cachDung", typeof(string));
+            foreach (Donvi dv in listdv)
+            {
+                DataRow row = table.NewRow();
+                row["donVi"] = dv.DonVi;
+                table.Rows.Add(row);
+            }
+            foreach (Cachdung cd in listcd)
+            {
+                DataRow row = table1.NewRow();
+                row["cachDung"] = cd.CachDung;
+                table1.Rows.Add(row);
+            }
+            cbb_donvi.ItemsSource = table.DefaultView;
+            cbb_donvi.DisplayMemberPath = "donVi";
+            cbb_cachdung.ItemsSource = table1.DefaultView;
+            cbb_cachdung.DisplayMemberPath = "cachDung";
+        }
+        private void tienkham_Click(object sender, RoutedEventArgs e)
+        {
+            thuoc_hidden();
+            benhnhan_hidden();
+            tk.Visibility = Visibility.Visible;
+            tk1.Visibility = Visibility.Visible;
+            thaydoitk.Visibility = Visibility.Visible;
+        }
+        private void thuoc_hidden()
+        {
+            cachdung.Visibility = Visibility.Hidden;
+            donvi.Visibility = Visibility.Hidden;
+            thaydoidv.Visibility = Visibility.Hidden;
+            thaydoicd.Visibility = Visibility.Hidden;
+            panelcd.Visibility = Visibility.Hidden;
+            paneldv.Visibility = Visibility.Hidden;
+            cbb_cachdung.Visibility = Visibility.Hidden;
+            cbb_donvi.Visibility = Visibility.Hidden;
+            to2.Visibility = Visibility.Hidden;
+            cd2.Visibility = Visibility.Hidden;
+            suacd.Visibility = Visibility.Hidden;
+            xoacd.Visibility = Visibility.Hidden;
+            to1.Visibility = Visibility.Hidden;
+            dv2.Visibility = Visibility.Hidden;
+            suadv.Visibility = Visibility.Hidden;
+            xoadv.Visibility = Visibility.Hidden;
+        }
+        private void tienkham_hidden()
+        {
+            tk.Visibility = Visibility.Hidden;
+            tk1.Visibility = Visibility.Hidden;
+            thaydoitk.Visibility = Visibility.Hidden;
+        }
+        private void thaydoitk_Click(object sender, RoutedEventArgs e)
+        {
+            bool kt;
+            try
+            {
+                float.Parse(tk.Text);
+                kt = true;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Vui lòng nhập số và không được để trống", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                kt = false;
+            }
+            if (kt == false)
+            {
+                tk.Text = "";
+                tk.Focus();
+            }
+            else
+            {
+                PhieukhambenhBUS pkbBus = new PhieukhambenhBUS();
+                pkbBus.tk();
+                float tkmoi = float.Parse(tk.Text.ToString());
+                float tkcu = PhieukhambenhDTO.TienKham;
+                bool kq = pkbBus.thaydoiTK(tkmoi, tkcu);
+                if (kq == false)
+                {
+                    MessageBox.Show("thay đổi thất bại");
+                }
+                else MessageBox.Show("thay đổi thành công");
+            }
+            
+            
+        }
+
+        private void thuoc_Click(object sender, RoutedEventArgs e)
+        {
+            tienkham_hidden();
+            benhnhan_hidden();
+            cachdung.Visibility = Visibility.Visible;
+            donvi.Visibility = Visibility.Visible;
+            thaydoidv.Visibility = Visibility.Visible;
+            thaydoicd.Visibility = Visibility.Visible;
+            panelcd.Visibility = Visibility.Visible;
+            paneldv.Visibility = Visibility.Visible;
+            cbb_cachdung.Visibility = Visibility.Visible;
+            cbb_donvi.Visibility = Visibility.Visible;
+            if (sua.IsChecked == true)
+            {
+                to2.Visibility = Visibility.Visible;
+                cd2.Visibility = Visibility.Visible;
+                suacd.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                xoacd.Visibility = Visibility.Visible;
+            }
+            if (sua1.IsChecked == true)
+            {
+                to1.Visibility = Visibility.Visible;
+                dv2.Visibility = Visibility.Visible;
+                suadv.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                xoadv.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void thaydoidv_Click(object sender, RoutedEventArgs e)
+        {
+            if (donvi.Text == "" ) { MessageBox.Show("Vui lòng điền đơn vị mới"); }
+            else
+            {
+                ThuocBUS thBus = new ThuocBUS();
+                bool kq = thBus.themdv(donvi.Text.ToString());
+                if (kq == false)
+                {
+                    MessageBox.Show("Thêm đơn vị thất bại");
+                }
+                else
+                {
+                    MessageBox.Show("Thêm đơn vị thành công");
+                }
+                load();
+            }
+        }
+
+        private void RadioButton_Click(object sender, RoutedEventArgs e)
+        {
+            xoacd.Visibility = Visibility.Hidden;
+            to2.Visibility = Visibility.Visible;
+            cd2.Visibility = Visibility.Visible;
+            suacd.Visibility = Visibility.Visible;
+        }
+
+        private void RadioButton_Click_1(object sender, RoutedEventArgs e)
+        {
+            to2.Visibility = Visibility.Hidden;
+            cd2.Visibility = Visibility.Hidden;
+            suacd.Visibility = Visibility.Hidden;
+            xoacd.Visibility = Visibility.Visible;
+        }
+
+        private void sua1_Click(object sender, RoutedEventArgs e)
+        {
+            xoadv.Visibility = Visibility.Hidden;
+            to1.Visibility = Visibility.Visible;
+            dv2.Visibility = Visibility.Visible;
+            suadv.Visibility = Visibility.Visible;
+        }
+
+        private void xoa1_Click(object sender, RoutedEventArgs e)
+        {
+            to1.Visibility = Visibility.Hidden;
+            dv2.Visibility = Visibility.Hidden;
+            suadv.Visibility = Visibility.Hidden;
+            xoadv.Visibility = Visibility.Visible;
+        }
+
+        private void suadv_Click(object sender, RoutedEventArgs e)
+        {
+            if (dv2.Text == "" && cbb_donvi.Text == "") { MessageBox.Show("Vui lòng điền đầy đủ thông tin");  } else { 
+            ThuocBUS thBus = new ThuocBUS();
+            bool kq = thBus.thaydoiDV(dv2.Text, cbb_donvi.Text);
+            if (kq == false)
+            {
+                MessageBox.Show("Sửa đơn vị thất bại");
+            }
+            else
+            {
+                MessageBox.Show("Sửa đơn vị thành công");
+            }
+            load();
+            }
+        }
+
+        private void suacd_Click(object sender, RoutedEventArgs e)
+        {
+            if (cd2.Text == "" && cbb_cachdung.Text == "") { MessageBox.Show("Vui lòng điền đầy đủ thông tin"); }
+            else
+            {
+                ThuocBUS thBus = new ThuocBUS();
+                bool kq = thBus.thaydoiCD(cd2.Text, cbb_cachdung.Text);
+                if (kq == false)
+                {
+                    MessageBox.Show("Sửa cách dùng thất bại");
+                }
+                else
+                {
+                    MessageBox.Show("Sửa cách dùng thành công");
+                }
+                load();
+            }
+        }
+
+        private void xoadv_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbb_donvi.Text == "") { MessageBox.Show("Vui lòng chọn đơn vị"); }
+            else
+            {
+                ThuocBUS thBus = new ThuocBUS();
+                bool kq = thBus.xoaDV(cbb_donvi.Text);
+                if (kq == false)
+                {
+                    MessageBox.Show("Xóa đơn vị thất bại");
+                }
+                else
+                {
+                    MessageBox.Show("Xóa đơn vị thành công");
+                }
+                load();
+            }
+        }
+
+        private void xoacd_Click(object sender, RoutedEventArgs e)
+        {
+            if (cbb_cachdung.Text == "") { MessageBox.Show("Vui lòng chọn cách dùng"); }
+            else
+            {
+                ThuocBUS thBus = new ThuocBUS();
+                bool kq = thBus.xoaCD(cbb_cachdung.Text);
+                if (kq == false)
+                {
+                    MessageBox.Show("Xóa cách dùng thất bại");
+                }
+                else
+                {
+                    MessageBox.Show("Xóa cách dùng thành công");
+                }
+                load();
+            }
+        }
+
+        private void thaydoicd_Click(object sender, RoutedEventArgs e)
+        {
+            if (cachdung.Text == "") { MessageBox.Show("Vui lòng điền cách dùng mới"); }
+            else
+            {
+                ThuocBUS thBus = new ThuocBUS();
+                bool kq = thBus.themcd(cachdung.Text.ToString());
+                if (kq == false)
+                {
+                    MessageBox.Show("Thêm cách dùng thất bại");
+                }
+                else
+                {
+                    MessageBox.Show("Thêm cách dùng thành công");
+                }
+                load();
+            }
+        }
+        private void benhnhan_hidden()
+        {
+            bn.Visibility = Visibility.Hidden;
+            bn1.Visibility = Visibility.Hidden;
+            thaydoibn.Visibility = Visibility.Hidden;
+        }
+        private void benhnhan_Click(object sender, RoutedEventArgs e)
+        {
+            tienkham_hidden();
+            thuoc_hidden();
+            bn.Visibility = Visibility.Visible;
+            bn1.Visibility = Visibility.Visible;
+            thaydoibn.Visibility = Visibility.Visible;
+        }
+        
+        private static bool IsNumber(string val)
+        {
+            if (val != "")
+                return Regex.IsMatch(val, @"^[0-9]\d*\.?[0]*$");
+            else return true;
+        }
+       
+        private void thaydoibn_Click(object sender, RoutedEventArgs e)
+        {
+            bool kt;
+            try
+            {
+                int.Parse(bn1.Text);
+                kt = true;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Vui lòng nhập số và không được để trống","Warning",MessageBoxButton.OK, MessageBoxImage.Warning);
+                kt = false;
+            }
+            if (kt == false)
+            {
+                bn1.Text = "";
+                bn1.Focus();
+            }
+            else 
+            {
+                PhieukhambenhBUS pkbBus = new PhieukhambenhBUS();
+                bool kq1 = pkbBus.drop_trigger_khamtoida();
+                bool kq = pkbBus.thaydoi_khamtoida(int.Parse(bn1.Text.ToString()));
+                MessageBoxImage icon = MessageBoxImage.Warning;
+
+                if (kq1 == false || kq == false)
+                {
+                    MessageBox.Show("Thay đổi số lượng bệnh nhân khám tối đa thất bại", "Result", MessageBoxButton.OKCancel, icon);
+                }
+                else
+                {
+                    MessageBox.Show("Thay đổi số lượng bệnh nhân khám tối đa thành công", "Result");
+                }
+            }
+
+        }
+    }
+}
